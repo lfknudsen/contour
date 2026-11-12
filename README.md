@@ -1,12 +1,15 @@
 # Contour
 
-A Python script to output a low-resolution corner contour of an image.
+Programme to output a low-resolution corner contour (in the form of a list of
+coordinates for use with Godot, but also optionally as an actual image)
+based on a 2D image.
+Intended to be used as the input for a program which converts the coordinates
+into a 3D mesh.
 
-I wrote it to generate hitboxes of 3D versions of 2D sprites in a game I
-was working on.
-
-The input can be downscaled as necessary, and can be output as a list of
-coordinates for use with Godot, or as an actual .png.
+It's essentially a way to make a basic collision box out of a 2D sprite. Hence
+the low resolution and disinterest in finding *all* corners, much less keeping
+all edges: The resulting convex collision shape would be more computationally
+expensive to use than necessary (for my purposes).
 
 ## Dependencies
 
