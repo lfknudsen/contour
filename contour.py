@@ -125,9 +125,6 @@ def main() -> int:
     alpha_channel = tiny.getchannel("A")
     simple_alpha = Image.eval(alpha_channel, extremify_alpha)
     tiny.paste(simple_alpha, None, None)
-    # tiny.save(name + "_tinybitmap.png", "PNG", optimize=False)
-    resampled = tiny.resize(img.size, Image.NEAREST, None, None)
-    # resampled.save(name + "_bitmap.png", "PNG", optimize=False)
 
     points = generate_corners(list(tiny.getdata()), tiny.width, tiny.height)
     print("Found ", len(points), " corners.")
