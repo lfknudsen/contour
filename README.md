@@ -2,14 +2,33 @@
 
 A Python script to output a low-resolution corner contour of an image.
 
-I wrote it to generate hitboxes of sprites in a game I was working on.
+I wrote it to generate hitboxes of 3D versions of 2D sprites in a game I
+was working on.
 
-The output can be downscaled as necessary, and can be output as a list of
+The input can be downscaled as necessary, and can be output as a list of
 coordinates for use with Godot, or as an actual .png.
+
+## Dependencies
+
+Requires the Pillow library.
+
+## Setup
+
+I recommend just using `uv`, but if you prefer not to, you will need to install pillow with
+
+```
+pip install pillow
+```
 
 ## Usage
 
-There are currently no command-line arguments to change output scaling or format.
+There are currently no command-line arguments to change scaling or format.
+
+```
+uv run contour.py <filename>
+```
+
+or
 
 ```
 py contour.py <filename>
