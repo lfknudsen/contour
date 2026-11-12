@@ -138,7 +138,7 @@ def main() -> int:
         outline = Image.new("RGBA", tiny.size, (0, 0, 0, 0))
         for p in points:
             outline.putpixel(p, (0, 0, 0, 255))
-        outline.save("corners.png", "PNG", optimize=False)
+        outline.save(name + "_corners.png", "PNG", optimize=True)
 
     if (output_as_packed_array):
         points_str = "points = PackedVector3Array("
