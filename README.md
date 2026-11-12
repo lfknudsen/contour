@@ -47,5 +47,4 @@ scaled up by 500% (nearest neighbour algorithm). The background is made white to
 
 ## How it works
 
-This description is written years after I wrote the script, but as I recall:\
-For each edge pixel in the image, the algorithm moves inward and stops at the first non-transparent pixel it encounters. If this pixel is a corner, it is kept in the output.
+Imagine that for each edge pixel in the image, the algorithm moves inward and stops at the first non-transparent pixel it encounters. If this pixel is a corner (or the edge of the image), it is kept in the output.
