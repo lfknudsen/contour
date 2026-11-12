@@ -12,8 +12,9 @@
   author: github.com/lfknudsen
 """
 
-import sys
 import os
+import sys
+
 from PIL import Image
 
 
