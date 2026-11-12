@@ -113,7 +113,7 @@ def main() -> int:
         return 0
 
     filename = sys.argv[1]
-    name, ext = os.path.splitext(filename)
+    name, _ = os.path.splitext(filename)
     img = Image.open(filename)
 
     scale = 5.0
