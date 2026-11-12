@@ -13,9 +13,59 @@
 """
 
 import os
+import re
 import sys
+from dataclasses import dataclass, field
 
 from PIL import Image
+
+
+@dataclass
+class args:
+    prefix: str = ""
+    suffix: str = "_corners"
+    ext: str = ".png"
+    scale: float = 0.20
+    pixels_per_m: float = 0.025
+    output_as_picture: bool = True
+    output_as_packed_array: bool = False
+    output_as_vector_array: bool = False
+    files: list[str] = field(default_factory=list)
+
+
+def error(msg: str):
+    print(f"\033[91m{msg}\033[0m", file=sys.stderr)
+
+
+def printHelp():
+    print(
+"""Usage: uv run contour.py [OPTIONS] <filenames...>
+
+Options:
+-h, -help, --help       Print this message and exit.
+
+-prefix <string>        Set the prefix of the output filename. Default: ''
+                        The output will be <prefix><filename without extension><suffix><ext>
+
+-suffix <string>        Set the suffix of the output filename. Default: '_corners'
+                        
+-ext <string>           Set the extension and file format of the output file. Default: '.png'
+                        If given an empty string, the output will be a png file, but the file
+                        itself won't have an extension.
+
+-scale <number>         Resample the input image before running the algorithm. Default: 5
+                        The width and height of the input will be divided by this number.
+                        If set to 1, the scale will be the same.
+
+-ppm <number>           Pixels per m. This is only relevant for Godot's formats.
+                        Default: 0.025
+
+-picture                Save the result as a picture file. On by default.
+-no-picture             DO NOT save the result as a picture file.
+
+-packed                 Format the result as a Godot packed array and print it to stdout.
+
+-vector                 Format the result as a Godot vector array and print it to stdout.""")
 
 
 def extremify_alpha(pixel) -> int:
@@ -107,44 +157,39 @@ def generate_corners(img, width, height) -> list[tuple[int, int]]:
     return pts
 
 
-def main() -> int:
-    if len(sys.argv) <= 1:
-        print("Please include a filename as parameter.")
-        return 0
+def main(state: args) -> int:
+    if len(state.files) == 0:
+        error("No filenames given.")
+        printHelp()
+        sys.exit(1)
 
     filename = sys.argv[1]
     name, _ = os.path.splitext(filename)
     img = Image.open(filename)
 
-    scale = 5.0
-    pixels_per_m = 0.025
-
-    tiny = img.resize((int(img.size[0] / scale),
-                       int(img.size[1] / scale)),
+    tiny = img.resize((int(img.size[0] / state.scale),
+                       int(img.size[1] / state.scale)),
                       Image.Resampling.LANCZOS, None, None)
     alpha_channel = tiny.getchannel("A")
     simple_alpha = Image.eval(alpha_channel, extremify_alpha)
     tiny.paste(simple_alpha, None, None)
 
-    points = generate_corners(list(tiny.getdata()), tiny.width, tiny.height)
-    print("Found ", len(points), " corners.")
-    print(points)
+    points = generate_corners(list(tiny.getdata()), tiny.width, tiny.height) # type: ignore
 
-    output_as_picture = False
-    output_as_packed_array = False
-    output_as_vector_array = True
-
-    if (output_as_picture):
+    if (state.output_as_picture):
         outline = Image.new("RGBA", tiny.size, (0, 0, 0, 0))
         for p in points:
             outline.putpixel(p, (0, 0, 0, 255))
-        outline.save(name + "_corners.png", "PNG", optimize=True)
+        format = None
+        if (state.ext == ""):
+            format = "PNG"
+        outline.save(state.prefix + name + state.suffix + state.ext, format, optimize=True)
 
-    if (output_as_packed_array):
+    if (state.output_as_packed_array):
         points_str = "points = PackedVector3Array("
         for p in points:
-            p0 = str(p[0] * scale * pixels_per_m)
-            p1 = str(p[1] * scale * pixels_per_m)
+            p0 = str(p[0] * state.scale * state.pixels_per_m)
+            p1 = str(p[1] * state.scale * state.pixels_per_m)
             points_str += p0 + ', ' + p1 + ", -0.1, " + p0 + ', ' + p1 + ", 0.1, "
 
         split = points_str.rsplit(", ", 1)
@@ -153,19 +198,19 @@ def main() -> int:
         with open(name + "_packed.txt", "w") as new_file:
             new_file.write(split[0])
 
-    if (output_as_vector_array):
+    if (state.output_as_vector_array):
         points_str = "points = PackedVector3Array(["
         for p in range(len(points) - 2):
             px = (tiny.width / 2) - points[p][0]
             py = (tiny.height / 2) - points[p][0]
-            px *= scale * pixels_per_m
-            py *= scale * pixels_per_m
+            px *= state.scale * state.pixels_per_m
+            py *= state.scale * state.pixels_per_m
             points_str += "Vector3(" + str(px) + ", " + str(py) + ", -0.1), "
             points_str += "Vector3(" + str(px) + ", " + str(py) + ", 0.1), "
         px = (tiny.width / 2) - points[-1][0]
         py = (tiny.height / 2) - points[-1][1]
-        px *= scale * pixels_per_m
-        py *= scale * pixels_per_m
+        px *= state.scale * state.pixels_per_m
+        py *= state.scale * state.pixels_per_m
         points_str += "Vector3(" + str(px) + ", " + str(py) + ", -0.1), "
         points_str += "Vector3(" + str(px) + ", " + str(py) + ", 0.1)])"
         with open(name + "_arr.txt", "w") as new_file:
@@ -173,5 +218,80 @@ def main() -> int:
 
     return 0
 
+
+def next() -> str:
+    if hasNext():
+        return sys.argv.pop(0)
+    return ""
+
+
+def hasNext() -> bool:
+    return len(sys.argv) != 0
+
+
 if __name__ == "__main__":
-    main()
+    next()
+    state = args()
+
+    rxFloat = re.compile("^[0-9]*[.]?[0-9]+$")
+
+    while hasNext():
+        arg = next()
+        if not arg.startswith("-"):
+            state.files.append(arg)
+            continue
+        match arg:
+            case "-h", "-help", "--help":
+                printHelp()
+                sys.exit(0)
+            case "-suffix", "-postfix":
+                if hasNext():
+                    state.suffix = next()
+                else:
+                    error("Missing string after -suffix")
+                    sys.exit(1)
+            case "-prefix":
+                if hasNext():
+                    state.prefix = next()
+                else:
+                    error("Missing string after -prefix")
+                    sys.exit(1)
+            case "-ext":
+                if hasNext():
+                    state.ext = next()
+                    if len(state.ext) > 0 and state.ext[0] != ".":
+                        state.ext = "." + state.ext
+                else:
+                    error("Missing string after -ext")
+                    sys.exit(1)
+            case "-scale":
+                if hasNext():
+                    scale = next()
+                    if rxFloat.fullmatch(scale):
+                        state.scale = float(scale)
+                    else:
+                        error(f"The value after -scale could not be understood as a decimal number: {scale}")
+                        sys.exit(1)
+                else:
+                    error("Missing number after -scale")
+                    sys.exit(1)
+            case "-ppm":
+                if hasNext():
+                    ppm = next()
+                    if rxFloat.fullmatch(ppm):
+                        state.pixels_per_m = float(ppm)
+                    else:
+                        error(f"The value after -ppm could not be understood as a decimal number: {ppm}")
+                        sys.exit(1)
+                else:
+                    error("Missing number after -ppm")
+                    sys.exit(1)
+            case "-picture":
+                state.output_as_picture = True
+            case "-no-picture":
+                state.output_as_picture = False
+            case "-packed":
+                state.output_as_packed_array = True
+            case "-vector":
+                state.output_as_vector_array = True
+    main(state)
