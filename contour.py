@@ -84,15 +84,11 @@ def generate_corners(img, width, height) -> list[tuple[int, int]]:
                 elif (edge_left(x, y)):
                     rightmost = (x, y)
 
-                if (edge_above(x, y)):
-                    if ((topmost[x] == -1 or topmost[x] == y)):
-                        topmost[x] = y
-                        if is_corner(img, x, y, width, height)[0]:
-                            pts.append((x, y))
-                if (edge_below(x, y)):
-                    if (bottommost[x] == (-1, -1)):
-                        bottommost[x] = (x, y)
-                    elif (bottommost[x][1] < y):
+                if (edge_above(x, y) and (topmost[x] == -1 or topmost[x] == y)):
+                    topmost[x] = y
+                    if is_corner(img, x, y, width, height)[0]:
+                        pts.append((x, y))
+                if (edge_below(x, y) and (bottommost[x] == (-1, -1) or bottommost[x][1] < y)):
                         bottommost[x] = (x, y)
             x += 1
 
