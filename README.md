@@ -25,26 +25,57 @@ pip install pillow
 
 ## Usage
 
-There are currently no command-line arguments to change scaling or format.
-
 ```
-uv run contour.py <filename>
+uv run contour.py [OPTIONS] <filenames>
 ```
 
 or
 
 ```
-py contour.py <filename>
+py contour.py [OPTIONS] <filenames>
+```
+
+#### Options:
+
+```
+-h, -help, --help       Print this message and exit.
+
+-prefix <string>        Set the prefix of the output filename. Default: ''
+                        The output will be <prefix><filename w/o extension><suffix><ext>
+
+-suffix <string>        Set the suffix of the output filename. Default: '_corners'
+                        Alias: -postfix
+                        
+-ext <string>           Set the extension and file format of the output file. Default: '.png'
+                        If given an empty string, the output will be a png file, but the file
+                        itself won't have an extension.
+
+-scale <number>         Resample the input image before running the algorithm, dividing the
+                        width and height of the input by this number. Default: 5.0
+                        If set to 1, the scale will be the same.
+
+-ppm <number>           Pixels per meter. This is only relevant for Godot's formats.
+                        Default: 0.025
+
+-picture                Save the result as a picture file. On by default.
+-no-picture             DO NOT save the result as a picture file.
+
+-packed                 Format the result as a Godot packed array and print it to stdout.
+
+-vector                 Format the result as a Godot vector array and print it to stdout.
 ```
 
 ## Example
 
 Below is seen an example of the programme's output. The input image was resampled to
 20% of its original size. In the illustration, the 'after' image has therefore been
-scaled up by 500% (nearest neighbour algorithm). The background is made white to make it easier to see the output.
+scaled up by 500% (nearest neighbour algorithm). The background is made white to make it
+easier to see the output.
 
 ![Example before and after](example.png)
 
 ## How it works
 
-Imagine that for each edge pixel in the image, the algorithm moves inward and stops at the first non-transparent pixel it encounters. If this pixel is a corner (or the edge of the image), it is kept in the output.
+Imagine that for each edge pixel in the image, the algorithm moves inward and stops at the
+first non-transparent pixel it encounters. If this pixel is a corner (or the edge of the image),
+it is kept in the output.
