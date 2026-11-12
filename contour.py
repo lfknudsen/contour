@@ -121,7 +121,7 @@ def main() -> int:
 
     tiny = img.resize((int(img.size[0] / scale),
                        int(img.size[1] / scale)),
-                      Image.LANCZOS, None, None)
+                      Image.Resampling.LANCZOS, None, None)
     alpha_channel = tiny.getchannel("A")
     simple_alpha = Image.eval(alpha_channel, extremify_alpha)
     tiny.paste(simple_alpha, None, None)
