@@ -172,3 +172,6 @@ def main() -> int:
             new_file.write(points_str)
 
     return 0
+
+if __name__ == "__main__":
+    main()
