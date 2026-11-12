@@ -143,9 +143,9 @@ def main() -> int:
     if (output_as_packed_array):
         points_str = "points = PackedVector3Array("
         for p in points:
-            p[0] *= scale * pixels_per_m
-            p[1] *= scale * pixels_per_m
-            points_str += str(p[0]) + ', ' + str(p[1]) + ", -0.1, " + str(p[0]) + ', ' + str(p[1]) + ", 0.1, "
+            p0 = str(p[0] * scale * pixels_per_m)
+            p1 = str(p[1] * scale * pixels_per_m)
+            points_str += p0 + ', ' + p1 + ", -0.1, " + p0 + ', ' + p1 + ", 0.1, "
 
         split = points_str.rsplit(", ", 1)
         split[0] += ")"
